@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionList>
+    <Extension Id="com.selectron.panel">
+        <HostList>
+            <Host Name="AEFT" Port="2035"/>
+        </HostList>
+    </Extension>
+</ExtensionList>

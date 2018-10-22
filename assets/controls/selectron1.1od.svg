@@ -1,0 +1,36 @@
+<svg id="selectron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26.05 26.05">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #b1b1b1;
+        stroke-miterlimit: 10;
+        stroke-width: 0.5px;
+      }
+
+      .cls-2 {
+        fill: #3593eb;
+      }
+
+      .cls-2, .cls-3, .cls-4 {
+        stroke: #232323;
+        stroke-linejoin: round;
+      }
+
+      .cls-3 {
+        fill: #66ff3b;
+      }
+
+      .cls-4 {
+        fill: #eb6d5a;
+      }
+    </style>
+  </defs>
+  <title>selectron1.1od</title>
+  <rect id="frame" class="cls-1" x="0.25" y="0.25" width="25.55" height="25.55"/>
+  <g id="od">
+    <path id="odB" class="cls-2" d="M203.64,24.89A12.08,12.08,0,0,1,191.54,37v-2.2a9.9,9.9,0,0,0,9.89-9.89A9.74,9.74,0,0,0,200.11,20l1.9-1.12A12,12,0,0,1,203.64,24.89Z" transform="translate(-178.52 -11.87)"/>
+    <path id="odG" class="cls-3" d="M202,18.85,200.11,20A9.85,9.85,0,0,0,183,20l-1.93-1.12a12.09,12.09,0,0,1,20.95,0Z" transform="translate(-178.52 -11.87)"/>
+    <path id="odR" class="cls-4" d="M191.54,34.79V37a12.09,12.09,0,0,1-10.48-18.14L183,20a9.65,9.65,0,0,0-1.34,4.93A9.9,9.9,0,0,0,191.54,34.79Z" transform="translate(-178.52 -11.87)"/>
+  </g>
+</svg>

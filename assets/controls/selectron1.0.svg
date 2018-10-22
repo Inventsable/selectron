@@ -1,0 +1,14 @@
+<svg id="selectron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26.05 26.05">
+  <g id="od">
+    <path id="odB" class="selectron-odB" d="M203.05,24.89A11.5,11.5,0,0,1,191.54,36.4V30.64a5.75,5.75,0,0,0,5.75-5.75,5.64,5.64,0,0,0-.77-2.86l5-2.89A11.48,11.48,0,0,1,203.05,24.89Z" transform="translate(-178.52 -11.87)"/>
+    <path id="odG" class="selectron-odG" d="M201.5,19.14l-5,2.89a5.72,5.72,0,0,0-10,0l-5-2.89a11.51,11.51,0,0,1,19.93,0Z" transform="translate(-178.52 -11.87)"/>
+    <path id="odR" class="selectron-odR" d="M191.54,30.64V36.4a11.51,11.51,0,0,1-10-17.26l5,2.89a5.65,5.65,0,0,0-.78,2.86A5.75,5.75,0,0,0,191.54,30.64Z" transform="translate(-178.52 -11.87)"/>
+  </g>
+  <g id="id">
+    <path id="idB" class="selectron-idB" d="M185.79,24.89a5.75,5.75,0,0,1,5.75-5.75v5.75l-5,2.86A5.64,5.64,0,0,1,185.79,24.89Z" transform="translate(-178.52 -11.87)"/>
+    <path id="idG" class="selectron-idG" d="M186.56,27.75l5-2.86,5,2.86a5.72,5.72,0,0,1-9.95,0Z" transform="translate(-178.52 -11.87)"/>
+    <path id="idR" class="selectron-idR" d="M191.54,24.89V19.14a5.75,5.75,0,0,1,5.75,5.75,5.65,5.65,0,0,1-.78,2.86Z" transform="translate(-178.52 -11.87)"/>
+  </g>
+  <rect id="frame" class="selectron-frame" x="0.25" y="0.25" width="25.55" height="25.55"/>
+  <path class="selectron-core" d="M193.93,24.89a2.4,2.4,0,1,1-4.79,0,2.29,2.29,0,0,1,.33-1.19,2.38,2.38,0,0,1,4.14,0A2.28,2.28,0,0,1,193.93,24.89Z" transform="translate(-178.52 -11.87)"/>
+</svg>
