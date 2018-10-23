@@ -3,6 +3,59 @@ loadUniversalJSXLibraries();
 loadJSX('compile.jsx');
 window.Event = new Vue();
 
+// FIX
+// Create comp sync toggle
+// Create dynamic JSON context menu
+// Create dynamic JSON flyout menu
+
+// Needs to flush UI if cursor leaves panel -- axo-esque wake/sleep states
+// ? Parent sometimes not applied correctly
+
+// Selection scan should return parent of layer if already has parent,
+// tags should dynamically assume/assign siblings to same parent
+
+// Needs Codecore [Cursorcore, Findcore, Rigcore, Codecore]
+// Needs placeholder components when taglist or screen is empty.
+  // taglist - Nothing is selected bodymovin animation
+  // screen - should display info about full comp. All families, all tags.
+
+  // Needs to jigsaw entire family tree
+// Needs to read all layers and construct master selection.
+// Should read all props of all layers and count how many color controls are manual.
+  // Should keep track of hasExpression and canExpression, further regex if already autorig
+
+// Needs fleshed out controls
+// Needs config and options.
+// Needs a toolbar for screen -- families, custom expression, custom script snippet
+
+
+Vue.component('anim-noselection', {
+  template: `
+    <div class="anim-noselection flexmid">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 30">
+        <rect data-name="bg" class="animFrame" x="0" y="0" width="140" height="30"/>
+        <g id="boundingbox">
+          <g id="borderbox">
+            <rect class="animBBox" x="24.45" y="8.2" width="102.22" height="14.66"/>
+            <rect class="animNode" x="22.8" y="6.56" width="3.29" height="3.29"/>
+            <rect class="animNode" x="73.91" y="6.56" width="3.29" height="3.29"/>
+            <rect class="animNode" x="125.02" y="6.56" width="3.29" height="3.29"/>
+            <rect class="animNode" x="22.8" y="21.22" width="3.29" height="3.29"/>
+            <rect class="animNode" x="73.91" y="21.22" width="3.29" height="3.29"/>
+            <rect class="animNode" x="125.02" y="21.22" width="3.29" height="3.29"/>
+            <rect class="animNode" x="22.8" y="13.47" width="3.29" height="3.29"/>
+            <rect class="animNode" x="125.02" y="13.47" width="3.29" height="3.29"/>
+          </g>
+        </g>
+        <g id="cursor">
+          <path id="cursor-2" data-name="cursor" class="animCursor" d="M8.58,20.91l3.18-3.18a.24.24,0,0,1,.17-.07h4.49a.24.24,0,0,0,.17-.41l-8-8a.24.24,0,0,0-.41.17l0,11.31A.24.24,0,0,0,8.58,20.91Z" transform="translate(0.5 0.5)"/>
+        </g>
+      </svg>
+    </div>
+  `,
+})
+
+// This could also display code DNA
 Vue.component('anno', {
   template: `
     <div class="main-Anno">
@@ -105,6 +158,45 @@ Vue.component('familydesc', {
   `,
 })
 
+Vue.component('tag-details', {
+  template: `
+    <div class="screen-Tags-Details">
+    {{details}}
+    </div>
+  `,
+  data() {
+    return {
+      details: 'something here'
+    }
+  },
+  methods: {
+    setDetails: function(msg) {
+      this.details = msg;
+    },
+    getDetails: function() {
+      var str = 'hello';
+      console.log('hello?');
+      var ulength = this.$root.comp.relations.unique.length;
+      var rlength = this.$root.comp.relations.raw.length;
+      var layerlength = this.$root.comp.layers.cloned.length;
+      console.log(`layers: ${layerlength}
+        unique: ${ulength}
+        raw: ${rlength} `);
+      // var lines = ['Project has', layerlength + ' layers', ulength + ' types of relations', rlength + ' relations']
+      // for (var i = 0; i < lines.length; i++) {
+      //   str += '\r\n' + lines[i]
+      // }
+      // this.setDetails(str);
+      return str;
+    }
+  },
+  mounted() {
+    var self = this;
+    Event.$on('allTags', self.setDetails)
+    Event.$on('updateCompFamily', self.getDetails)
+  }
+})
+
 Vue.component('family', {
   props: ['clone'],
   // props: {
@@ -174,10 +266,25 @@ Vue.component('family', {
   }
 })
 
+Vue.component('placeholder', {
+  template: `
+    <div class="placeholder">
+      <taglist-full></taglist-full>
+      <tag-details></tag-details>
+    </div>
+  `,
+  data() {
+    return {
+      msg: 'hello'
+    }
+  },
+})
+
 Vue.component('screen', {
   template: `
   <div class="screenwrap">
     <div class="screen-content">
+      <placeholder v-if="!show.families"></placeholder>
       <familydesc v-if="show.families"></familydesc>
       <family v-if="show.families" v-for="layer in layers" :key="layer.index" :clone="layer.id"></family>
     </div>
@@ -185,10 +292,11 @@ Vue.component('screen', {
   `,
   data() {
     return {
-      msg: 'hello',
+      msg: 'nothing is selected',
       layers: [],
       show: {
-        families: true,
+        placeholder: true,
+        families: false,
       },
       count: 0,
     }
@@ -209,7 +317,7 @@ Vue.component('screen', {
       for (var i = 0; i < this.$root.selection.layers.cloned.length; i++) {
         var targ = this.$root.selection.layers.cloned[i];
         this.count = this.count + 1;
-        console.log(this.count);
+        // console.log(this.count);
         this.layers.push(targ);
       }
       this.setFamilyCSS(totalLength);
@@ -217,22 +325,25 @@ Vue.component('screen', {
     },
     setFamilyCSS: function(length) {
       var self = this;
-      console.log(`Setting css to ${length}`);
+      // console.log(`Setting css to ${length}`);
       this.$root.setCSS('screen-cols', length);
     },
     reset: function() {
       this.show.families = false;
-    }
+    },
+    togglePlaceholder: function() {
+      this.placeholder = !this.placeholder;
+    },
   },
   mounted() {
     var self = this;
-    Event.$on('updateFamilies', self.getFamilies)
-    Event.$on('clearSelection', self.clearFamilies)
+    Event.$on('soloSelection', self.togglePlaceholder)
+    Event.$on('updateFamilies', self.getFamilies);
+    Event.$on('clearSelection', self.clearFamilies);
     Event.$on('clearSelection', self.reset);
   }
 })
 
-// Rework tags to include type [layer, prop]
 // Fix scroll turning off via body
 // @mouseover="checkScroll"
 // @mouseout="activateScroll">
@@ -240,6 +351,7 @@ Vue.component('taglist', {
   template: `
     <div class="head-Tags-Body">
       <div class="head-Tags-Content">
+      <anim-noselection v-if="!tagList.length"></anim-noselection>
         <div v-for="tag in tagList"
           @mouseover="hover(tag, true, $event)"
           @mouseout="hover(tag, false, $event)"
@@ -431,6 +543,107 @@ Vue.component('taglist', {
   }
 })
 
+Vue.component('taglist-full', {
+  template: `
+    <div class="screen-Tags-Body">
+      <div class="screen-Tags-Content">
+        <div v-for="tag in tagList"
+          @mouseover="hover(tag, true, $event)"
+          @mouseout="hover(tag, false, $event)"
+          class="tagwrap"
+          @click="toggleState(tag, tag.isActive)">
+          <span :class="tagBtn(tag)">{{tag.name}}</span>
+        </div>
+      </div>
+      <div class="screen-Tags-Anno">{{tagList.length}} tags detected</div>
+    </div>
+  `,
+  data() {
+    return {
+      tagList: [
+        {
+          name: 'buddy',
+          key: 0,
+          type: 'prop',
+          isActive: false,
+          isHover: false,
+        },
+      ],
+      desc: '',
+    }
+  },
+  methods: {
+    toggleState: function(tag, state) {
+      tag.isActive = !state;
+      console.log(`${!state}`);
+      this.setActive(tag, tag.isActive);
+    },
+    setActive: function(tag, state) {
+      if (!this.$root.Shift)
+        this.clearActive();
+      console.log(`Activating ${tag.name}`);
+      tag.isActive = state;
+    },
+    hover: function(tag, state, evt) {
+      // Event.$emit('checkMods', evt);
+      tag.isHover = state;
+      // this.parseAnnotation(tag, state);
+      console.log(state);
+      // if (state)
+      //   this.activateScroll();
+      // else
+      //   this.deactivateScroll();
+    },
+    clearActive: function() {
+      for (var i = 0; i < this.tagList.length; i++)
+        this.tagList[i].isActive = false;
+    },
+    tagBtn: function(tag) {
+      var style = 'tag-' + tag.type + '-';
+      if (!tag.isActive) {
+        if (tag.isHover)
+          style += 'hover'
+        else
+          style += 'idle'
+      } else {
+        style += 'active';
+      }
+      return style
+    },
+    clearTags: function() {
+      this.tagList = [];
+    },
+    constructTags: function() {
+      this.tagList = [], child = {};
+      for (var i = 0; i < this.$root.tags.comp.length; i++) {
+        child = {
+          key: i,
+          name: this.$root.tags.comp[i],
+          type: 'layer',
+          isActive: false,
+          isHover: false,
+        }
+        this.tagList.push(child);
+      }
+      // for (var e = 0; e < this.$root.tags.props.length; e++) {
+      //   child = {
+      //     key: e,
+      //     name: this.$root.tags.props[e],
+      //     type: 'prop',
+      //     isActive: false,
+      //     isHover: false,
+      //   }
+      //   this.tagList.push(child);
+      // }
+      // console.log('Current tags are:');
+      // console.log(this.$root.tags.master);
+    }
+  },
+  mounted() {
+    Event.$on('allTags', this.constructTags)
+  }
+})
+
 Vue.component('selectron', {
   template: `
     <div
@@ -444,9 +657,9 @@ Vue.component('selectron', {
         <path class="Selectron-idG" d="M196.23,27.59a5.38,5.38,0,0,1-9.36,0l-4,2.28a9.93,9.93,0,0,0,17.26,0Z" transform="translate(-178.52 -11.87)"/>
         <path class="Selectron-idR" d="M191.54,14.92v4.54h0a5.39,5.39,0,0,1,4.68,8.13l3.93,2.26a9.94,9.94,0,0,0-8.62-14.93Z" transform="translate(-178.52 -11.87)"/>
         <rect class="Selectron-frame" x="0.25" y="0.25" width="25.55" height="25.55"/>
-        <circle v-if="core.orb" class="Selectron-core" cx="13.02" cy="13.02" r="2.4"/>
-        <path v-if="core.cursor" class="Selectron-core" d="M189.89,28.54l2-2a.14.14,0,0,1,.1-.05h2.82a.15.15,0,0,0,.11-.25l-5-5a.15.15,0,0,0-.26.11v7.1A.14.14,0,0,0,189.89,28.54Z" transform="translate(-178.52 -11.87)"/>
-        <path v-if="core.find" class="Selectron-core" d="M194.19,22.24a2.12,2.12,0,0,0-3.28,2.66L189,26.84a.45.45,0,0,0,.31.76.5.5,0,0,0,.32-.13l1.94-1.95a2,2,0,0,0,1.14.35,2.13,2.13,0,0,0,1.51-3.63Zm-.63,2.38a1.24,1.24,0,0,1-1.75-1.75,1.27,1.27,0,0,1,1.75,0A1.24,1.24,0,0,1,193.56,24.62Z" transform="translate(-178.52 -11.87)"/>
+        <circle v-if="core.orb" @click="toggleSync" :class="coreClass" cx="13.02" cy="13.02" r="2.4"/>
+        <path v-if="core.cursor" @click="toggleSync" :class="coreClass" d="M189.89,28.54l2-2a.14.14,0,0,1,.1-.05h2.82a.15.15,0,0,0,.11-.25l-5-5a.15.15,0,0,0-.26.11v7.1A.14.14,0,0,0,189.89,28.54Z" transform="translate(-178.52 -11.87)"/>
+        <path v-if="core.find" @click="toggleSync" :class="coreClass" d="M194.19,22.24a2.12,2.12,0,0,0-3.28,2.66L189,26.84a.45.45,0,0,0,.31.76.5.5,0,0,0,.32-.13l1.94-1.95a2,2,0,0,0,1.14.35,2.13,2.13,0,0,0,1.51-3.63Zm-.63,2.38a1.24,1.24,0,0,1-1.75-1.75,1.27,1.27,0,0,1,1.75,0A1.24,1.24,0,0,1,193.56,24.62Z" transform="translate(-178.52 -11.87)"/>
       </svg>
     </div>
   `,
@@ -456,6 +669,7 @@ Vue.component('selectron', {
       scanningMods: false,
       familyMode: false,
       count: 0,
+      syncing: false,
       timer: {
         selection: null,
         modifiers: null,
@@ -463,6 +677,10 @@ Vue.component('selectron', {
     }
   },
   computed: {
+    coreClass: function() {
+      var style = 'Selectron-core-' + this.syncing
+      return style
+    },
     core: function() {
       var num = this.$root.idnum;
       var shadowcore = {
@@ -485,10 +703,16 @@ Vue.component('selectron', {
   },
   mounted() {
     this.toggleScan();
-    Event.$on('updateTags', this.updateTags)
-    Event.$on('updateSelectron', this.updateSelectron)
+    Event.$on('updateComp', this.compCheck);
+    Event.$on('updateTags', this.updateTags);
+    Event.$on('updateSelectron', this.updateSelectron);
   },
   methods: {
+    // was going to limit compRead with this
+    toggleSync: function() {
+      // console.log(`togging ${this.syncing} to ${!this.syncing}`);
+      // this.syncing = !this.syncing;
+    },
     onMouseOutside: function(e, el) {
       this.$root.parseModifiers(e);
       // console.log(e);
@@ -584,6 +808,75 @@ Vue.component('selectron', {
       }
       return result;
     },
+    layerMsg: function() {
+      console.log('hello');
+    },
+    chooseSelectionAction: function() {
+      // var length = this.$root.selection.layers.cloned.length;
+      // console.log(length);
+      // if (length > 1)
+        this.selectedFamilies();
+      // else if (length == 1)
+      // this.layerMsg();
+      // else if (length == 0)
+        // Event.$emit('updateComp');
+    },
+    // BROKEN
+    compFamilies: function() {
+      console.log('tried');
+      var families = [], self = this, newRelation = 0, totalRelations = [];
+      if (this.$root.comp.layers.cloned.length > 1) {
+        console.log('correct');
+        for (var i = 0; i < this.$root.comp.layers.cloned.length; i++) {
+          for (var c = 0; c < this.$root.comp.layers.cloned.length; c++) {
+            if (i !== c) {
+              var paul = this.$root.comp.layers.cloned[i], john = this.$root.comp.layers.cloned[c];
+              // console.log(paul.tags);
+              // console.log(john.tags);
+              var family = this.sharesFamily(paul, john);
+              // console.log(family);
+              if (family.relation.length) {
+                var johnboy = {name: john.name, index: john.index}, paulboy = {name: paul.name, index: paul.index};
+                var clones = [johnboy, paulboy], cloneFam = [john.family, paul.family];
+                for (var p = 0; p < clones.length; p++) {
+                  var inverse = (p) ? 0 : 1;
+                  var types = [['parent', 'parent'], ['children', 'child'], ['siblings', 'sibling'], ['cousins', 'cousin']]
+                  for (var t = 0; t < types.length; t++) {
+                    var role = types[t][1], branch = types[t][0];
+                    if (family.relation[p] == role) {
+                      try {
+                        if (this.notInFamily(clones[inverse], cloneFam[p][branch])) {
+                          // console.log(`${clones[inverse].name} is ${role} in ${clones[p].name}'s ${branch}`);
+                          newRelation++;
+                          cloneFam[p][branch].push(clones[inverse]);
+                          totalRelations.push(role);
+                        } else {
+                          // console.log(`${clones[inverse].name} is already a ${role} in ${clones[p].name}'s ${branch}`);
+                        }
+                      } catch (err){}
+                    }
+                  }
+                }
+              } else {
+                // console.log('These are not related');
+              }
+            }
+          }
+          // var tree = this.$root.selection.layers.cloned[i];
+          // console.log(tree.name);
+          // console.log(tree.family);
+        }
+        console.log('hello?');
+        var uniqueRelations = this.$root.removeDuplicateKeywords(totalRelations);
+        console.log(`${newRelation} individual relations:`);
+        console.log(totalRelations);
+        console.log(uniqueRelations);
+        this.$root.comp.relations.count = newRelation;
+        this.$root.comp.relations.unique = uniqueRelations;
+        this.$root.comp.relations.raw = totalRelations;
+        Event.$emit('updateCompFamily');
+      }
+    },
     selectedFamilies: function() {
       var families = [], self = this, newRelation = 0, totalRelations = [];
       if (this.$root.selection.layers.cloned.length > 1) {
@@ -629,15 +922,21 @@ Vue.component('selectron', {
         console.log(uniqueRelations);
         this.displayAllFamilies();
         Event.$emit('updateFamilies');
-      } else {
+      } else if (this.$root.selection.layers.cloned.length == 1) {
+        this.layerMsg();
+      } else if (this.$root.selection.layers.cloned.length == 0) {
         Event.$emit('clearSelection');
         this.familyMode = false;
         // this.$root.clearSelection();
         console.log('Clear relations');
+        Event.$emit('updateComp');
+
       }
     },
     updateTags: function(data) {
-      this.selectedFamilies();
+      console.log('update');
+      this.chooseSelectionAction();
+      // this.selectedFamilies();
       // console.log(this.$root.selection.layers.cloned);
     },
     selectedTagsList: function() {
@@ -661,8 +960,37 @@ Vue.component('selectron', {
       results.all = [].concat(results.layers, results.props);
       return results;
     },
+    compTagsList: function() {
+      var self = this, layers = [], props = [];
+      var results = {
+        layers: [],
+        props: [],
+        all: [],
+      };
+      var shadowLayers = this.$root.comp.layers.cloned;
+      for (var i = 0; i < shadowLayers.length; i++) {
+        var tags = shadowLayers[i].tags;
+        results.layers = [].concat(results.layers, tags);
+        // for (var p = 0; p < shadowLayers[i].props.length; p++) {
+        //   var prop = shadowLayers[i].props[p].name;
+        //   results.props.push(prop);
+        // }
+      }
+      results.layers = this.$root.removeDuplicateKeywords(results.layers);
+      // results.props = this.$root.removeDuplicateKeywords(results.props);
+      // results.all = [].concat(results.layers, results.props);
+      return results;
+    },
     generateTags: function(name) {
       return this.$root.getKeyWordsMono(name);
+    },
+    compClone: function(child, id) {
+      var clone = {}, self = this;
+      for (attr in child) {
+        clone[attr] = child[attr];
+      }
+      clone['tags'] = self.generateTags(child.name);
+      return clone;
     },
     selectionClone: function(child, type, id) {
       var mirror = [], self = this;
@@ -709,6 +1037,16 @@ Vue.component('selectron', {
       }
       return newLayers;
     },
+    constructCompMsg: function(msg) {
+      var newLayers = [];
+      if (msg.length) {
+        for (var i = 0; i < msg.length; i++) {
+          var clone = this.compClone(msg[i], i);
+          newLayers.push(clone);
+        }
+      }
+      return newLayers;
+    },
     selectionRead: function(result) {
       var msg = JSON.parse(result), self = this;
       this.$root.selection.layers.length = msg.layers.length;
@@ -731,6 +1069,54 @@ Vue.component('selectron', {
       var self = this;
       // csInterface.evalScript(`propSelection()`, self.selectionFake)
       csInterface.evalScript(`scanSelection()`, self.selectionRead)
+    },
+    compRead: function(result) {
+      // console.log('reading');
+      var msg = JSON.parse(result), self = this;
+      // console.log(msg);
+      this.$root.comp.layers.length = msg.layers.length;
+      var shadowlayers = this.$root.comp.layers.raw;
+      if (this.$root.isEqual(shadowlayers, msg.layers.raw)) {
+        // console.log('No change');
+      } else {
+        // JSX will return typeof var(msg)
+        // console.log(msg);
+        this.$root.comp.layers.raw = msg.layers.raw;
+        this.$root.comp.layers.cloned = this.constructCompMsg(msg.layers.raw);
+        var tags = this.compTagsList();
+        console.log('tags via comp:');
+        console.log(tags.layers);
+        this.$root.tags.comp = tags.layers;
+        Event.$emit('allTags');
+        // this.displayLayers();
+      }
+      this.compFamilies();
+    },
+    displayProps: function(layer) {
+      var self = this;
+      if (layer.props.length) {
+        for (var i = 0; i < layer.props.length; i++) {
+          var targ = layer.props[i];
+          console.log(targ.name);
+        }
+      }
+    },
+    displayLayers: function() {
+      for (var i = 0; i < this.$root.comp.layers.cloned.length; i++) {
+        var layer = this.$root.comp.layers.cloned[i];
+        this.displayProps(layer);
+      }
+    },
+    msgRead: function(msg) {
+      var result = JSON.parse(msg);
+      console.log(msg);
+      console.log(result);
+    },
+    compCheck: function() {
+      var self = this;
+      console.log('Checking comp');
+      // csInterface.evalScript(`checkPropsOnSelected()`, self.msgRead)
+      csInterface.evalScript(`scanComp()`, self.compRead)
     },
     scanLayers: function(state) {
       var self = this;
@@ -775,50 +1161,94 @@ Vue.component('selectron', {
 var app = new Vue({
   el: '#app',
   data: {
-    // for mods / UI of selectron
-    Ctrl: false,
-    Shift: false,
-    Alt: false,
-    canScroll: true,
-    idnum: 1,
-    idmax: 3,
-    anno: 'action',
-    hasAction: true,
-    action: 'contextual action',
-    // for tagging system
-    rx: {
-     keysort: /((\d*\_)|[a-z](?=[A-Z])|[a-z]*\s|[A-Z][a-z]*)/gm,
-     ifoneword: /^((\d*\_*)|([A-Za-z]))[a-z]*$/,
-     onesort: /[^\_]*$/,
-     keywordOld: /([a-z]|[A-Z])[a-z]*(?=[A-Z]|\s)/gm,
-    },
-    selection: {
-      layers: {
-        show: true,
-        cloned: [],
-        length: 0,
+      // for mods / UI of selectron
+      Ctrl: false,
+      Shift: false,
+      Alt: false,
+      canScroll: true,
+      idnum: 1,
+      idmax: 3,
+      anno: 'action',
+      hasAction: true,
+      action: 'contextual action',
+      // for tagging system
+      rx: {
+       keysort: /((\d*\_)|[a-z](?=[A-Z])|[a-z]*\s|[A-Z][a-z]*)/gm,
+       ifoneword: /^((\d*\_*)|([A-Za-z]))[a-z]*$/,
+       onesort: /[^\_]*$/,
+       keywordOld: /([a-z]|[A-Z])[a-z]*(?=[A-Z]|\s)/gm,
       },
-    },
-   tags: {
-     // Revamp this to differentiate between layers/props
-     master: [],
-     layers: [],
-     props: [],
-   },
+      comp: {
+        relations: {
+          raw: [],
+          unique: [],
+          count: 0,
+        },
+        layers: {
+          show: true,
+          cloned: [],
+          length: 0,
+        },
+      },
+      selection: {
+        layers: {
+          show: true,
+          cloned: [],
+          length: 0,
+        },
+      },
+      context: {
+        menu: [{
+                id: "refresh",
+                label: "Refresh menu",
+                enabled: "true",
+                checkable: "true",
+                checked: "false",
+              },
+              {
+                label: "---"
+              },
+              {
+                id: "menuItemId3",
+                label: "testExample3",
+                enabled: "false",
+                checkable: "true",
+                checked: "false"
+              }
+       ],
+      },
+     tags: {
+       // Revamp this to differentiate between layers/props
+       master: [],
+       layers: [],
+       props: [],
+       comp: [],
+     },
   },
   mounted: function () {
     var self = this;
     console.log(`Root instance mounted`);
     Event.$on('checkMods', self.parseModifiers)
     document.addEventListener('mousewheel', this.handleScroll);
-    document.addEventListener('mouseover', function(e){
-      // console.log('Hover over');
-    })
-    document.addEventListener('mouseout', function(e) {
-      // console.log('escape');
-    })
+    console.log(this.menu);
+    var stringified = JSON.stringify(self.context);
+    // var total = {
+    //   menu: JSON.stringify(self.menu),
+    // }
+    console.log(stringified);
+    // csInterface.setContextMenuByJSON(stringified, self.contextMenuAction)
+    // csInterface.addEventListener("com.adobe.csxs.events.flyoutMenuClicked", setPanelCallback);
+    // document.addEventListener('mouseover', function(e){
+    //   // console.log('Hover over');
+    // })
+    // document.addEventListener('mouseout', function(e) {
+    //   // console.log('escape');
+    // })
   },
   methods: {
+    contextMenuAction: function(evt) {
+      console.log(evt);
+    },
     clearSelection: function() {
       console.log('Clear');
       for (var i = this.selection.layers.cloned.length; i > 0; i--) {

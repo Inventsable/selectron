@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 30">
+  <rect data-name="bg" class="animFrame" x="0" y="0" width="140" height="30"/>
+  <g id="boundingbox">
+    <g id="borderbox">
+      <rect class="animBBox" x="24.45" y="8.2" width="102.22" height="14.66"/>
+      <rect class="animNode" x="22.8" y="6.56" width="3.29" height="3.29"/>
+      <rect class="animNode" x="73.91" y="6.56" width="3.29" height="3.29"/>
+      <rect class="animNode" x="125.02" y="6.56" width="3.29" height="3.29"/>
+      <rect class="animNode" x="22.8" y="21.22" width="3.29" height="3.29"/>
+      <rect class="animNode" x="73.91" y="21.22" width="3.29" height="3.29"/>
+      <rect class="animNode" x="125.02" y="21.22" width="3.29" height="3.29"/>
+      <rect class="animNode" x="22.8" y="13.47" width="3.29" height="3.29"/>
+      <rect class="animNode" x="125.02" y="13.47" width="3.29" height="3.29"/>
+    </g>
+  </g>
+  <g id="cursor">
+    <path id="cursor-2" data-name="cursor" class="animCursor" d="M8.58,20.91l3.18-3.18a.24.24,0,0,1,.17-.07h4.49a.24.24,0,0,0,.17-.41l-8-8a.24.24,0,0,0-.41.17l0,11.31A.24.24,0,0,0,8.58,20.91Z" transform="translate(0.5 0.5)"/>
+  </g>
+</svg>
