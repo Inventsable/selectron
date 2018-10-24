@@ -2,6 +2,8 @@
 
 Revamp of Joystick Buddy -- a reactive selection tool that can recognize related layers within any AE composition and prompt for a custom script, expression injection or action on layers/props/relatives matching specified keywords.
 
+![](https://thumbs.gfycat.com/GrizzledEmotionalBanteng-size_restricted.gif)
+
 ## detects parenting hierarchy for entire character rig:
 
 ![](https://thumbs.gfycat.com/AlarmedDeliriousIndianrockpython-size_restricted.gif)
@@ -17,7 +19,3 @@ Revamp of Joystick Buddy -- a reactive selection tool that can recognize related
 ## dynamic real-time tagging of selection keywords and properties, detects familial relations
 
 ![](https://thumbs.gfycat.com/UnkemptElatedAcornwoodpecker-size_restricted.gif)
-
-
-
-The current screen component is only a visual indicator that the prototype recognizes relatives within a keyword family. The screen would instead show data about the total comp (if nothing selected) or "Rig Recipes", custom script snippets or expressions from a user-created library, if selection meets the recipe conditions (like an auto-rig action for eyebrows needing tags like 'Brow' and both directions, west and east or left and right).

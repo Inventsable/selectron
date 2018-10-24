@@ -2,6 +2,7 @@
   --color-material-idle: #2f2f2f;
   --color-material-hover: #3d3d3d;
   --color-material-active: #4b4b4b;
+  --color-material-ultra: #797979;
   --color-light-idle: #b9b9b9;
   --color-light-hover: #c0c0c0;
   --color-light-active: #d0d0d0;
@@ -14,6 +15,10 @@
   --head-h: 4.825rem;
   --screen-cols: 1;
 
+  --anim-orb-opacity: 1;
+  --anim-cursor-opacity: 0;
+  --anim-find-opacity: 0;
+  --color-animChosen: #ff0000;
   --color-R: #eb6d5a;
   --color-G: #66ff3b;
   --color-B: #3593eb;
@@ -36,18 +41,25 @@
   min-height: 1rem;
 }
 
-.animFrame {stroke: #1f1f1f;}
-.animFrame, .animBBox {fill: none;}
-.animNode {fill: #1f1f1f;}
-.animCursor {fill: #797979;}
-.animFrame, .animBBox, .animNode {stroke-miterlimit: 10;}
-.animBBox, .animNode {
-  stroke: #797979;
-  stroke-width: 1px;
+
+.animCursor, .animFind, .animOrb {
+  fill: var(--color-animChosen);
 }
 
+#bmCursor {opacity: var(--anim-cursor-opacity)}
+#bmFind {opacity: var(--anim-find-opacity)}
+#bmOrb {opacity: var(--anim-orb-opacity)}
 
 
+.animSelectionBox {stroke: var(--color-material-ultra)}
+.animFrame {stroke: #1f1f1f;}
+.animFrame, .animBBox {fill: none;}
+.animNode {fill: var(--color-animChosen);}
+.animFrame, .animBBox, .animNode {stroke-miterlimit: 10;}
+.animBBox, .animNode {
+  stroke: var(--color-animChosen);
+  stroke-width: 1px;
+}
 
 .app-Grid {
   display: grid;
@@ -80,7 +92,7 @@
   /* font-size: 1.5rem; */
   /* justify-content: center; */
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 4fr 3fr;
   /* align-items: center; */
 }
 
@@ -275,7 +287,7 @@ svg {
   width: 100%;
   height: auto;
   min-height: 100px;
-  max-height: 300px;
+  max-height: 200px;
   margin-top: .25rem;
   background-color: var(--color-dark);
   overflow: auto;

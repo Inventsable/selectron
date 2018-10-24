@@ -4,6 +4,7 @@ loadJSX('compile.jsx');
 window.Event = new Vue();
 
 // FIX
+// Total tags has duplicates
 // Create comp sync toggle
 // Create dynamic JSON context menu
 // Create dynamic JSON flyout menu
@@ -29,10 +30,24 @@ window.Event = new Vue();
 // Needs a toolbar for screen -- families, custom expression, custom script snippet
 
 
+
+Vue.component('character', {
+  // props: ['num'],
+  template: `
+    <div class="ballWrap">
+      <div id="char1"></div>
+      <div id="char2"></div>
+    </div>
+  `,
+
+})
+
+// @mouseover="activateAnim" @mouseout="deactivateAnim"
+
 Vue.component('anim-noselection', {
   template: `
-    <div class="anim-noselection flexmid">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 30">
+    <div id="tags-anim" class="anim-noselection flexmid">
+      <svg v-if="showMock" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 30">
         <rect data-name="bg" class="animFrame" x="0" y="0" width="140" height="30"/>
         <g id="boundingbox">
           <g id="borderbox">
@@ -53,6 +68,83 @@ Vue.component('anim-noselection', {
       </svg>
     </div>
   `,
+  data() {
+    return {
+      msg: 'Hello there',
+      bom: {},
+      cursorList: ['start', 'orb', 'cursor', 'find'],
+      // currentid: this.$root.idnum,
+      currLoop: '1',
+      isActive: false,
+      showMock: false,
+    }
+  },
+  computed: {
+    currentid: function() {
+      return this.$root.idnum;
+    }
+  },
+  methods: {
+    playFirstFrames: function() {
+      // this.bom.play();
+      this.bom.playSegments([0,2], true);
+      console.log('Trying to boot');
+    },
+    checkAnimation: function(state) {
+      // console.log(state);
+      if (state) {this.activateAnim();}
+      else {this.deactivateAnim();}
+    },
+    activateAnim: function() {
+      this.bom.play();
+      console.log('turning on');
+    },
+    deactivateAnim: function() {
+      console.log('turning off');
+      this.bom.pause();
+      // this.bom.goToAndStop(1,true);
+    },
+    updateCursor: function() {
+      for (var i = 0; i < this.cursorList.length; i++) {
+        console.log(`rolled ${this.currentid}`);
+        var current = this.cursorList[i];
+        if (i !== this.currentid) {
+          this.$root.setCSS('anim-' + current + '-opacity', 0)
+        } else {
+          this.$root.setCSS('anim-' + current + '-opacity', 1)
+        }
+
+      }
+      // console.log('changed cursor to ' + res);
+    },
+    buildBodyMovin: function(elt, which) {
+      var result = false;
+      var bMovin = document.getElementById(elt);
+      var animData = {
+          wrapper: bMovin,
+          animType: 'svg',
+          loop: true,
+          prerender: true,
+          autoplay: false,
+          path: '../assets/animations/tags-noselectionSeq.json'
+      };
+      var bm = bodymovin.loadAnimation(animData);
+      return bm;
+    }
+  },
+  mounted() {
+    var self = this;
+    this.bom = this.buildBodyMovin('tags-anim');
+    Event.$on('updateAnimation', this.updateCursor);
+    Event.$on('tagAnimation', this.checkAnimation);
+    // this.playFirst();
+    // this.playFirstFrames();
+    this.updateCursor();
+    this.bom.pause();
+    // this.bom.addEventListener('DOMLoaded', function(){self.bom.goToAndStop(2,true)})
+    console.log(this.bom);
+    // console.log();
+  }
 })
 
 // This could also display code DNA
@@ -175,7 +267,7 @@ Vue.component('tag-details', {
     },
     getDetails: function() {
       var str = 'hello';
-      console.log('hello?');
+      // console.log('hello?');
       var ulength = this.$root.comp.relations.unique.length;
       var rlength = this.$root.comp.relations.raw.length;
       var layerlength = this.$root.comp.layers.cloned.length;
@@ -270,12 +362,13 @@ Vue.component('placeholder', {
   template: `
     <div class="placeholder">
       <taglist-full></taglist-full>
-      <tag-details></tag-details>
+      <tag-details v-if="details"></tag-details>
     </div>
   `,
   data() {
     return {
-      msg: 'hello'
+      msg: 'hello',
+      details: true,
     }
   },
 })
@@ -349,7 +442,7 @@ Vue.component('screen', {
 // @mouseout="activateScroll">
 Vue.component('taglist', {
   template: `
-    <div class="head-Tags-Body">
+    <div class="head-Tags-Body" @mouseover="activateAnim" @mouseout="deactivateAnim">
       <div class="head-Tags-Content">
       <anim-noselection v-if="!tagList.length"></anim-noselection>
         <div v-for="tag in tagList"
@@ -379,6 +472,14 @@ Vue.component('taglist', {
     }
   },
   methods: {
+    activateAnim: function() {
+      // console.log('Hello');
+      Event.$emit('tagAnimation', true);
+    },
+    deactivateAnim: function() {
+      // console.log('Goodbye');
+      Event.$emit('tagAnimation', false);
+    },
     checkScroll: function(evt) {
       console.log(`[${evt.clientX}, ${evt.clientY}]`);
       console.log(`[${window.innerWidth}, ${window.innerHeight}]`);
@@ -588,7 +689,7 @@ Vue.component('taglist-full', {
       // Event.$emit('checkMods', evt);
       tag.isHover = state;
       // this.parseAnnotation(tag, state);
-      console.log(state);
+      // console.log(state);
       // if (state)
       //   this.activateScroll();
       // else
@@ -734,18 +835,33 @@ Vue.component('selectron', {
       else
         this.$root.setCSS('color-idB', self.$root.getCSS('color-material-idle'));
 
-      if (this.$root.Ctrl)
+      var lastColor = this.$root.getCSS('color-animChosen');
+      var modColor = this.$root.getCSS('color-material-ultra');
+      if (this.$root.Ctrl) {
         this.$root.setCSS('color-odR', self.$root.getCSS('color-R'));
-      else
+        modColor = this.$root.getCSS('color-R');
+      } else {
         this.$root.setCSS('color-odR', self.$root.getCSS('color-material-idle'));
-      if (this.$root.Shift)
+      }
+      if (this.$root.Shift) {
+        modColor = this.$root.getCSS('color-G');
         this.$root.setCSS('color-odG', self.$root.getCSS('color-G'));
-      else
+      } else {
         this.$root.setCSS('color-odG', self.$root.getCSS('color-material-idle'));
-      if (this.$root.Alt)
+      }
+      if (this.$root.Alt) {
+        modColor = this.$root.getCSS('color-B');
         this.$root.setCSS('color-odB', self.$root.getCSS('color-B'));
-      else
+      } else {
         this.$root.setCSS('color-odB', self.$root.getCSS('color-material-idle'));
+      }
+      // if ((!this.$root.Ctrl) && (!this.$root.Shift) && (!this.$root.Alt)) {
+      //   modColor = this.$root.getCSS('color-material-idle');
+      // }
+      if (lastColor !== modColor) {
+        console.log(modColor);
+        this.$root.setCSS('color-animChosen', modColor)
+      }
       // console.log('Updated CSS variables');
     },
     displayAllFamilies: function() {
@@ -823,10 +939,10 @@ Vue.component('selectron', {
     },
     // BROKEN
     compFamilies: function() {
-      console.log('tried');
+      // console.log('tried');
       var families = [], self = this, newRelation = 0, totalRelations = [];
       if (this.$root.comp.layers.cloned.length > 1) {
-        console.log('correct');
+        // console.log('correct');
         for (var i = 0; i < this.$root.comp.layers.cloned.length; i++) {
           for (var c = 0; c < this.$root.comp.layers.cloned.length; c++) {
             if (i !== c) {
@@ -866,11 +982,11 @@ Vue.component('selectron', {
           // console.log(tree.name);
           // console.log(tree.family);
         }
-        console.log('hello?');
+        // console.log('hello?');
         var uniqueRelations = this.$root.removeDuplicateKeywords(totalRelations);
-        console.log(`${newRelation} individual relations:`);
-        console.log(totalRelations);
-        console.log(uniqueRelations);
+        // console.log(`${newRelation} individual relations:`);
+        // console.log(totalRelations);
+        // console.log(uniqueRelations);
         this.$root.comp.relations.count = newRelation;
         this.$root.comp.relations.unique = uniqueRelations;
         this.$root.comp.relations.raw = totalRelations;
@@ -977,6 +1093,7 @@ Vue.component('selectron', {
         // }
       }
       results.layers = this.$root.removeDuplicateKeywords(results.layers);
+      results.layers = this.$root.removeEmptyValues(results.layers);
       // results.props = this.$root.removeDuplicateKeywords(results.props);
       // results.all = [].concat(results.layers, results.props);
       return results;
@@ -1173,7 +1290,7 @@ var app = new Vue({
       action: 'contextual action',
       // for tagging system
       rx: {
-       keysort: /((\d*\_)|[a-z](?=[A-Z])|[a-z]*\s|[A-Z][a-z]*)/gm,
+       keysort: /((\d*\_)|^(\#.*)|^(\..*)|\d{1,3}|[a-z](?=[A-Z])|[a-z]*\s|[A-Z][a-z]*)/gm,
        ifoneword: /^((\d*\_*)|([A-Za-z]))[a-z]*$/,
        onesort: /[^\_]*$/,
        keywordOld: /([a-z]|[A-Z])[a-z]*(?=[A-Z]|\s)/gm,
@@ -1236,6 +1353,7 @@ var app = new Vue({
     //   menu: JSON.stringify(self.menu),
     // }
     console.log(stringified);
+    this.rollSelectionID(2);
     // csInterface.setContextMenuByJSON(stringified, self.contextMenuAction)
     // csInterface.addEventListener("com.adobe.csxs.events.flyoutMenuClicked", setPanelCallback);
     // document.addEventListener('mouseover', function(e){
@@ -1288,6 +1406,7 @@ var app = new Vue({
       console.log(`Rolling ${number} for ${target}`);
       this.idnum = number;
       Event.$emit('updateSelectron');
+      Event.$emit('updateAnimation');
     },
     parseModifiers: function(evt) {
       // console.log(evt);
@@ -1336,6 +1455,19 @@ var app = new Vue({
         }
       }
       return this.removeDuplicateKeywords(allKeyWords);
+    },
+    removeEmptyValues: function(keyList, mirror = []) {
+      // console.log(keyList);
+      for (var i = 0; i < keyList.length; i++) {
+        var targ = keyList[i];
+        console.log(targ);
+        if (/\s/.test(targ)) {
+          // console.log('Empty');
+        } else {
+          mirror.push(targ);
+        }
+      }
+      return mirror;
     },
     removeDuplicateKeywords: function(keyList) {
       var uniq = keyList
