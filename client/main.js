@@ -29,43 +29,9 @@ window.Event = new Vue();
 // Needs config and options.
 // Needs a toolbar for screen -- families, custom expression, custom script snippet
 
-
-
-Vue.component('character', {
-  // props: ['num'],
-  template: `
-    <div class="ballWrap">
-      <div id="char1"></div>
-      <div id="char2"></div>
-    </div>
-  `,
-
-})
-
-// @mouseover="activateAnim" @mouseout="deactivateAnim"
-
 Vue.component('anim-noselection', {
   template: `
     <div id="tags-anim" class="anim-noselection flexmid">
-      <svg v-if="showMock" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 30">
-        <rect data-name="bg" class="animFrame" x="0" y="0" width="140" height="30"/>
-        <g id="boundingbox">
-          <g id="borderbox">
-            <rect class="animBBox" x="24.45" y="8.2" width="102.22" height="14.66"/>
-            <rect class="animNode" x="22.8" y="6.56" width="3.29" height="3.29"/>
-            <rect class="animNode" x="73.91" y="6.56" width="3.29" height="3.29"/>
-            <rect class="animNode" x="125.02" y="6.56" width="3.29" height="3.29"/>
-            <rect class="animNode" x="22.8" y="21.22" width="3.29" height="3.29"/>
-            <rect class="animNode" x="73.91" y="21.22" width="3.29" height="3.29"/>
-            <rect class="animNode" x="125.02" y="21.22" width="3.29" height="3.29"/>
-            <rect class="animNode" x="22.8" y="13.47" width="3.29" height="3.29"/>
-            <rect class="animNode" x="125.02" y="13.47" width="3.29" height="3.29"/>
-          </g>
-        </g>
-        <g id="cursor">
-          <path id="cursor-2" data-name="cursor" class="animCursor" d="M8.58,20.91l3.18-3.18a.24.24,0,0,1,.17-.07h4.49a.24.24,0,0,0,.17-.41l-8-8a.24.24,0,0,0-.41.17l0,11.31A.24.24,0,0,0,8.58,20.91Z" transform="translate(0.5 0.5)"/>
-        </g>
-      </svg>
     </div>
   `,
   data() {
@@ -97,10 +63,10 @@ Vue.component('anim-noselection', {
     },
     activateAnim: function() {
       this.bom.play();
-      console.log('turning on');
+      // console.log('turning on');
     },
     deactivateAnim: function() {
-      console.log('turning off');
+      // console.log('turning off');
       this.bom.pause();
       // this.bom.goToAndStop(1,true);
     },
@@ -252,18 +218,48 @@ Vue.component('familydesc', {
 
 Vue.component('tag-details', {
   template: `
-    <div class="screen-Tags-Details">
-    {{details}}
+    <div class="screen-Details">
+      <div class="blank"></div>
+      <div class="screen-Colors-Wrap" :style="gridLength">
+        <div v-for="color in colors" class="colorPreview" :style="styleThis(color)">
+        </div>
+      </div>
+      <div class="screen-Tags-Details">{{details}}</div>
     </div>
   `,
   data() {
     return {
-      details: 'something here'
+      details: 'loading',
+      colors: [{value: '#1f1f1f', key: 0}],
     }
   },
+  computed: {
+    gridLength: function() {
+      return `display: grid;grid-template-columns: repeat(${this.colors.length}, 1fr)`;
+    },
+  },
   methods: {
+
+    styleThis: function(color) {
+      var str = 'background-color: ' + color.value;
+      return str;
+    },
+    colorPreview: function(color) {
+      var str = 'screen-Color-Box'
+    },
     setDetails: function(msg) {
       this.details = msg;
+    },
+    setColorPreview: function() {
+      this.colors = [];
+      for (var i = 0; i < this.$root.comp.colors.unique.length; i++) {
+        var child = {
+          value: this.$root.comp.colors.unique[i],
+          key: i,
+        }
+        this.colors.push(child)
+      }
+      // this.colors = ;
     },
     getDetails: function() {
       var str = 'hello';
@@ -284,8 +280,10 @@ Vue.component('tag-details', {
   },
   mounted() {
     var self = this;
-    Event.$on('allTags', self.setDetails)
-    Event.$on('updateCompFamily', self.getDetails)
+    Event.$on('allTags', self.setDetails);
+    Event.$on('updateCompFamily', self.getDetails);
+    Event.$on('compColorsUpdate', self.setDetails);
+    Event.$on('compColorsUpdate', self.setColorPreview);
   }
 })
 
@@ -376,13 +374,11 @@ Vue.component('placeholder', {
 Vue.component('screen', {
   template: `
   <div class="screenwrap">
-    <div class="screen-content">
       <placeholder v-if="!show.families"></placeholder>
-      <familydesc v-if="show.families"></familydesc>
-      <family v-if="show.families" v-for="layer in layers" :key="layer.index" :clone="layer.id"></family>
-    </div>
   </div>
   `,
+  // <familydesc v-if="show.families"></familydesc>
+  // <family v-if="show.families" v-for="layer in layers" :key="layer.index" :clone="layer.id"></family>
   data() {
     return {
       msg: 'nothing is selected',
@@ -647,6 +643,7 @@ Vue.component('taglist', {
 Vue.component('taglist-full', {
   template: `
     <div class="screen-Tags-Body">
+      <div class="screen-Tags-Anno">{{tagList.length}} tags detected</div>
       <div class="screen-Tags-Content">
         <div v-for="tag in tagList"
           @mouseover="hover(tag, true, $event)"
@@ -656,7 +653,6 @@ Vue.component('taglist-full', {
           <span :class="tagBtn(tag)">{{tag.name}}</span>
         </div>
       </div>
-      <div class="screen-Tags-Anno">{{tagList.length}} tags detected</div>
     </div>
   `,
   data() {
@@ -811,8 +807,9 @@ Vue.component('selectron', {
   methods: {
     // was going to limit compRead with this
     toggleSync: function() {
+      Event.$emit('updateComp');
       // console.log(`togging ${this.syncing} to ${!this.syncing}`);
-      // this.syncing = !this.syncing;
+      // this.$root.comp.syncing = !this.$root.comp.syncing;
     },
     onMouseOutside: function(e, el) {
       this.$root.parseModifiers(e);
@@ -1045,8 +1042,9 @@ Vue.component('selectron', {
         this.familyMode = false;
         // this.$root.clearSelection();
         console.log('Clear relations');
-        Event.$emit('updateComp');
-
+        if (this.$root.comp.syncing) {
+          Event.$emit('updateComp');
+        }
       }
     },
     updateTags: function(data) {
@@ -1187,6 +1185,63 @@ Vue.component('selectron', {
       // csInterface.evalScript(`propSelection()`, self.selectionFake)
       csInterface.evalScript(`scanSelection()`, self.selectionRead)
     },
+    scanForColors: function() {
+      // console.log('Displaying props:');
+      console.log('All colors in comp:');
+      var allColors = [], totalColors = 0, totalLayers = 0;
+      for (var i = 0; i < this.$root.comp.layers.cloned.length; i++) {
+        var layer = this.$root.comp.layers.cloned[i];
+        totalLayers++;
+        if (layer.props.length) {
+          for (var c = 0; c < layer.props.length; c++) {
+            var child = layer.props[c], mirror = [];
+            var colors = this.scanPropGroupForColor(child);
+            if (colors.length) {
+              for (var d = 0; d < colors.length; d++) {
+                // console.log(colors[d]);
+                totalColors++;
+                if (allColors.length) {
+                  var isNew = true;
+                  for (var a = 0; a < allColors.length; a++) {
+                    if (colors[d] == allColors[a])
+                      isNew = false;
+                  }
+                  if (isNew)
+                    allColors.push(colors[d])
+                } else {
+                  allColors.push(colors[d])
+                }
+              }
+            }
+          }
+        }
+      }
+      this.$root.comp.colors.unique = allColors;
+      this.$root.comp.colors.total = totalColors;
+      var msg = `${allColors.length} unique and ${totalColors} total unassigned colors found in ${totalLayers} layers.`
+      console.log(msg);
+      Event.$emit('compColorsUpdate', msg);
+    },
+    scanPropGroupForColor: function(propGroup, colors=[]) {
+      if (/(ADBE\sVector\s(Fill|Stroke)\sColor)/i.test(propGroup.matchName)) {
+        if (colors.length) {
+          var isNew = true;
+          for (var i = 0; i < colors.length; i++) {
+            if (propGroup.color == colors[i])
+              isNew = false;
+          }
+          if (isNew)
+            colors.push(propGroup.color)
+        } else {
+          colors.push(propGroup.color)
+        }
+      } else if (propGroup.children.length) {
+        for (var i = 0; i < propGroup.children.length; i++) {
+          this.scanPropGroupForColor(propGroup.children[i], colors);
+        }
+      }
+      return colors;
+    },
     compRead: function(result) {
       // console.log('reading');
       var msg = JSON.parse(result), self = this;
@@ -1208,13 +1263,23 @@ Vue.component('selectron', {
         // this.displayLayers();
       }
       this.compFamilies();
+      this.scanForColors();
     },
     displayProps: function(layer) {
       var self = this;
       if (layer.props.length) {
         for (var i = 0; i < layer.props.length; i++) {
           var targ = layer.props[i];
-          console.log(targ.name);
+          console.log(targ);
+          if (targ.children.length) {
+            console.log(`children of ${targ.name} >`);
+            for (var c = 0; c < targ.children.length; c++) {
+              var child = targ.children[c];
+              console.log(child.name);
+            }
+          } else {
+            console.log('------');
+          }
         }
       }
     },
@@ -1296,6 +1361,7 @@ var app = new Vue({
        keywordOld: /([a-z]|[A-Z])[a-z]*(?=[A-Z]|\s)/gm,
       },
       comp: {
+        syncing: false,
         relations: {
           raw: [],
           unique: [],
@@ -1306,6 +1372,10 @@ var app = new Vue({
           cloned: [],
           length: 0,
         },
+        colors: {
+          total: 0,
+          unique: [],
+        }
       },
       selection: {
         layers: {
@@ -1349,19 +1419,9 @@ var app = new Vue({
     document.addEventListener('mousewheel', this.handleScroll);
     console.log(this.menu);
     var stringified = JSON.stringify(self.context);
-    // var total = {
-    //   menu: JSON.stringify(self.menu),
-    // }
-    console.log(stringified);
     this.rollSelectionID(2);
     // csInterface.setContextMenuByJSON(stringified, self.contextMenuAction)
     // csInterface.addEventListener("com.adobe.csxs.events.flyoutMenuClicked", setPanelCallback);
-    // document.addEventListener('mouseover', function(e){
-    //   // console.log('Hover over');
-    // })
-    // document.addEventListener('mouseout', function(e) {
-    //   // console.log('escape');
-    // })
   },
   methods: {
     contextMenuAction: function(evt) {
@@ -1460,7 +1520,6 @@ var app = new Vue({
       // console.log(keyList);
       for (var i = 0; i < keyList.length; i++) {
         var targ = keyList[i];
-        console.log(targ);
         if (/\s/.test(targ)) {
           // console.log('Empty');
         } else {

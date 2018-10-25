@@ -14,6 +14,7 @@
   --scrollbar-opacity: 1;
   --head-h: 4.825rem;
   --screen-cols: 1;
+  --max-height: 200px;
 
   --anim-orb-opacity: 1;
   --anim-cursor-opacity: 0;
@@ -35,7 +36,6 @@
 
 
 .anim-noselection {
-  /* border: 2px solid red; */
   width: 100%;
   height: auto;
   min-height: 1rem;
@@ -49,7 +49,6 @@
 #bmCursor {opacity: var(--anim-cursor-opacity)}
 #bmFind {opacity: var(--anim-find-opacity)}
 #bmOrb {opacity: var(--anim-orb-opacity)}
-
 
 .animSelectionBox {stroke: var(--color-material-ultra)}
 .animFrame {stroke: #1f1f1f;}
@@ -69,7 +68,6 @@
 
 .head-Grid {
   color: var(--color-light-idle);
-  /* border: 2px solid red; */
   width: auto;
   display: grid;
   /* margin-bottom: .25rem; */
@@ -79,7 +77,8 @@
 
 .blank {
   width: 100%;
-  min-height: 1rem;
+  box-sizing: border-box;
+  /* min-height: 1rem; */
   height: auto;
   display: flex;
   justify-content: center;
@@ -91,12 +90,22 @@
   /* color: white; */
   /* font-size: 1.5rem; */
   /* justify-content: center; */
+  max-height: var(--max-height);
   display: grid;
-  grid-template-columns: 4fr 3fr;
+  grid-template-rows: 2fr 1fr;
   /* align-items: center; */
 }
 
 /* TAGS */
+
+.colorPreview {
+  box-sizing: border-box;
+  width: auto;
+  min-height: 10px;
+  border: 1px solid var(--color-border);
+  /* justify-self: baseline; */
+  /* border: 2px solid red; */
+}
 
 .screen-Tags-Body {
   display: grid;
@@ -110,16 +119,33 @@
   overflow: hidden;
   width: 100%;
   min-height: 1rem;
-  height: auto;
   /* margin: .125rem; */
   overflow-y: scroll;
 }
 
+.screen-Details {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: 1fr 1fr 2fr;
+  /* border: 2px solid red; */
+}
+
+.screen-Colors-Wrap {
+  /* border: 2px solid red; */
+  box-sizing: border-box;
+  /* display: grid; */
+  margin: .5rem 1rem;
+}
+
 .screen-Tags-Details {
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
+  text-align: center;
+  margin: .5rem 1rem;
+  /* height: calc(var(--max-height)/2); */
   color: var(--color-light-idle);
 }
 
@@ -127,7 +153,7 @@
   /* margin-top: .5rem; */
   display: flex;
   justify-content: center;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   /* overflow-y: scroll; */
 }
@@ -143,6 +169,7 @@
   justify-content: center;
   align-items: center;
   margin: .25rem 0px;
+  max-height: calc(var(--max-height)/2 - var(--max-height)/2/7);
   /* position: fixed; */
   color: var(--color-light-idle);
 }
@@ -153,7 +180,7 @@
   justify-content: center;
   align-items: baseline;
   flex-wrap: wrap;
-  border: var(--border-def);
+  /* border: var(--border-def); */
   background-color: var(--color-dark);
   overflow: hidden;
   height: var(--head-h);
@@ -254,9 +281,13 @@ svg {
 .Selectron-idB {fill: var(--color-idB);}
 .Selectron-frame {fill: none;}
 
-/* [class^="Selectron-core-"] {
+[class^="Selectron-core-"] {
   cursor: pointer;
-} */
+}
+
+[class^="Selectron-core-"]:hover {
+  fill: var(--color-material-hover);
+}
 
 .Selectron-core-false {
   fill: var(--color-material-active);
@@ -287,7 +318,7 @@ svg {
   width: 100%;
   height: auto;
   min-height: 100px;
-  max-height: 200px;
+  max-height: var(--max-height);
   margin-top: .25rem;
   background-color: var(--color-dark);
   overflow: auto;
@@ -298,7 +329,7 @@ svg {
   /* border: 2px solid red; */
   margin: 0.25rem 0rem;
   width: 100%;
-  height: 90%;
+  height: auto;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -328,7 +359,6 @@ svg {
   grid-template-columns: 6fr 8fr 2fr;
   grid-row-gap: .125rem;
   padding: .125rem 0px;
-  /* border: 2px solid red; */
   /* justify-content: center; */
   /* align-items: baseline; */
   cursor: pointer;

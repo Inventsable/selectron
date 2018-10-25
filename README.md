@@ -2,7 +2,9 @@
 
 Revamp of Joystick Buddy -- a reactive selection tool that can recognize related layers within any AE composition and prompt for a custom script, expression injection or action on layers/props/relatives matching specified keywords.
 
-![](https://thumbs.gfycat.com/GrizzledEmotionalBanteng-size_restricted.gif)
+## reactive UI
+
+![](https://thumbs.gfycat.com/SneakyIndelibleFairybluebird-size_restricted.gif)
 
 ## detects parenting hierarchy for entire character rig:
 
