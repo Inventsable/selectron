@@ -52,10 +52,34 @@ function scanSelection() {
   return JSON.stringify(result);
 }
 
+function createNewControl(type, val, nam) {
+  var controller, activeItem = app.project.activeItem, complete = false;
+  var values = val.split(',');
+  var names = nam.split(',');
+  if (type == 'color') {
+    var shape = activeItem.layers.addNull();
+    shape.name = "colorbuddy";
+    shape.effectsActive = true;
+    var eGroup = shape.property("ADBE Effect Parade");
+    for (var i = 0; i < values.length; i++) {
+      var control = eGroup.addProperty("ADBE Color Control");
+      control.name = names[i];
+      // alert(arrs[i]);
+      var col = hexToRgb(values[i]);
+      var rgb = [col.r, col.g, col.b, 255]/255;
+      // alert(rgb)
+      control.property("Color").setValue(rgb);
+    }
+    complete = true;
+  }
+  return complete;
+}
+
 
 function scanComp() {
   var activeItem = app.project.activeItem;
   var result = {
+    name: activeItem.name,
     layers: {
       raw: [],
       length: 0,
@@ -87,6 +111,7 @@ function scanComp() {
 // http://www.redefinery.com/ae/fundamentals/properties/
 function scanPropGroupProperties(propGroup, mirror, parent) {
   var i, prop;
+  // var ancestor = propGroup.parentProperty;
   var group = {
     matchName: propGroup.matchName,
     name: propGroup.name,
@@ -95,11 +120,13 @@ function scanPropGroupProperties(propGroup, mirror, parent) {
     layer: parent,
     children: [],
     value: propGroup.value,
+    // ancestor: ancestor,
   }
   for (i = 1; i <= propGroup.numProperties; i++) {
     prop = propGroup.property(i);
     if ((prop.propertyType === PropertyType.PROPERTY)
     && (prop.propertyValueType !== PropertyValueType.NO_VALUE)) {
+      // var par = prop.propertyGroup();
         var child = {
           name: prop.name,
           matchName: prop.matchName,
@@ -108,6 +135,7 @@ function scanPropGroupProperties(propGroup, mirror, parent) {
           parent: prop.propertyGroup().name,
           layer: parent,
           value: prop.value,
+          // ancestor: par.propertyGroup().name,
             //
           children: [],
         }
@@ -119,6 +147,8 @@ function scanPropGroupProperties(propGroup, mirror, parent) {
           child['maxValue'] = prop.maxValue;
           child['minValue'] = prop.minValue;
         }
+        // if (prop.depth > 3)
+          // child['ancestor'] = ancestor;
         if (prop.propertyValueType == PropertyValueType.COLOR) {
           child['color'] = rgbToHex(prop.value[0] * 255, prop.value[1] * 255, prop.value[2] * 255);
         }
@@ -143,58 +173,4 @@ function checkPropsOnSelected() {
     }
   }
   return JSON.stringify(results);
-}
-
-
-// thanks redefinery
-// http://www.redefinery.com/ae/fundamentals/properties/
-function scanPropGroupPropertiesSamp(propGroup, mirror, layerid) {
-  var i, prop;
-  var group = {
-    matchName: propGroup.matchName,
-    name: propGroup.name,
-    index: propGroup.propertyIndex,
-    depth: propGroup.propertyDepth,
-    layer: layerid,
-    children: [],
-    value: propGroup.value,
-  }
-  for (i = 1; i <= propGroup.numProperties; i++) {
-    prop = propGroup.property(i);
-    if ((prop.propertyType === PropertyType.PROPERTY)
-      && (prop.propertyValueType !== PropertyValueType.NO_VALUE)) {
-      var child = {
-        name: prop.name,
-        matchName: prop.matchName,
-        index: prop.propertyIndex,
-        depth: prop.propertyDepth,
-        parent: prop.propertyGroup().name,
-        layer: layerid,
-        value: prop.value,
-          // Returns [1, 0, 0, 1]
-        children: [],
-      }
-      if (prop.expressionEnabled)
-        child['exp'] = prop.expression;
-      else
-        child['exp'] = false;
-      if (prop.hasMax) {
-        child['maxValue'] = prop.maxValue;
-        child['minValue'] = prop.minValue;
-      }
-      // if (/color$/i.test(prop.matchName))
-      //   child['color'] = prop.valueAtTime(0, false);
-              //  Returns [1, 0, 0, 1]
-
-      // if (prop.propertyValueType == PropertyValueType.COLOR)
-      //   child['color'] = rgbToHex(prop.value[0] * 255, prop.value[1] * 255, prop.value[2] * 255);
-              //  Returns '#ff0000' instead of '#579F61'
-
-      group.children.push(child)
-    } else if ((prop.propertyType === PropertyType.INDEXED_GROUP) || (prop.propertyType === PropertyType.NAMED_GROUP)) {
-      scanPropGroupPropertiesSamp(prop, mirror, layerid);
-    }
-  }
-  mirror.push(group)
-  return mirror;
 }

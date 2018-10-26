@@ -218,19 +218,38 @@ Vue.component('familydesc', {
 
 Vue.component('tag-details', {
   template: `
-    <div class="screen-Details">
-      <div class="blank"></div>
-      <div class="screen-Colors-Wrap" :style="gridLength">
-        <div v-for="color in colors" class="colorPreview" :style="styleThis(color)">
+    <div class="screen-Master">
+      <div v-if="!hasColor" class="screen-Details">
+        <div class="nothing"></div>
+        <div class="screen-PromptColor">
+          <div class="screen-Colors-Wrap" :style="gridLength">
+            <div v-for="color in colors" class="colorPreview" :style="styleThis(color)">
+            </div>
+          </div>
+          <div class="screen-Tags-Details">{{details}}</div>
+        </div>
+        <div class="screen-Tags-BtnWrap">
+          <div
+            class="screen-Tags-Btn"
+            @click="createColorControl">
+            {{annoBtn}}
+          </div>
         </div>
       </div>
-      <div class="screen-Tags-Details">{{details}}</div>
+      <div v-if="hasColor" class="screen-ColorControl">
+        <div class="screen-Tags-Btn"
+          @click="rigColorControl">Rig colors</div>
+      </div>
     </div>
   `,
   data() {
     return {
+      show: false,
       details: 'loading',
+      annoBtn: '',
+      hasColor: false,
       colors: [{value: '#1f1f1f', key: 0}],
+      names: [],
     }
   },
   computed: {
@@ -239,7 +258,36 @@ Vue.component('tag-details', {
     },
   },
   methods: {
+    rigColorControl: function(state) {
+      if ((this.hasColor) && (state)) {
+        console.log('I am ready to rig!');
+      } else if (state) {
+        console.log('I am also ready');
+      } else {
+        console.log('I returned false');
+      }
+    },
+    // should check if colorbuddy already exists
+    createColorControl: function() {
+      var self = this;
+      if (!this.hasColor) {
+        var colors = [], names = [];
+        for (var i = 0; i < this.colors.length; i++) {
+          var targ = this.colors[i].value, targName = this.names[i];
+          colors.push(targ);
+          names.push(targName)
+        }
+        // console.log(colors);
+        // console.log(names);
+        // console.log(`${colors.length} : ${names.length}`);
+        this.hasColor = true;
+        csInterface.evalScript(`createNewControl('color', '${colors.join()}', '${this.names.join()}')`, self.rigColorControl);
+      }
+      // Collect all colors, convert to array, send to JSX, use same arrangement.
 
+      // If prop has color and no expression, loop through array and assign expression
+      // to corresponding match index / expression control
+    },
     styleThis: function(color) {
       var str = 'background-color: ' + color.value;
       return str;
@@ -248,7 +296,12 @@ Vue.component('tag-details', {
       var str = 'screen-Color-Box'
     },
     setDetails: function(msg) {
+      this.show = true;
       this.details = msg;
+      this.annoBtn = '+colorbuddy'
+      this.names = this.$root.comp.colors.names;
+      console.log(this.names);
+      // console.log('Do you want me to bundle these?');
     },
     setColorPreview: function() {
       this.colors = [];
@@ -259,10 +312,9 @@ Vue.component('tag-details', {
         }
         this.colors.push(child)
       }
-      // this.colors = ;
     },
     getDetails: function() {
-      var str = 'hello';
+      // var str = 'hello';
       // console.log('hello?');
       var ulength = this.$root.comp.relations.unique.length;
       var rlength = this.$root.comp.relations.raw.length;
@@ -275,7 +327,7 @@ Vue.component('tag-details', {
       //   str += '\r\n' + lines[i]
       // }
       // this.setDetails(str);
-      return str;
+      // return str;
     }
   },
   mounted() {
@@ -643,7 +695,7 @@ Vue.component('taglist', {
 Vue.component('taglist-full', {
   template: `
     <div class="screen-Tags-Body">
-      <div class="screen-Tags-Anno">{{tagList.length}} tags detected</div>
+      <div class="screen-Tags-Anno">{{tagList.length}} tags detected in comp {{compName}}</div>
       <div class="screen-Tags-Content">
         <div v-for="tag in tagList"
           @mouseover="hover(tag, true, $event)"
@@ -667,6 +719,11 @@ Vue.component('taglist-full', {
         },
       ],
       desc: '',
+    }
+  },
+  computed: {
+    compName: function() {
+      return this.$root.comp.name;
     }
   },
   methods: {
@@ -737,7 +794,7 @@ Vue.component('taglist-full', {
     }
   },
   mounted() {
-    Event.$on('allTags', this.constructTags)
+    Event.$on('allTags', this.constructTags);
   }
 })
 
@@ -766,7 +823,7 @@ Vue.component('selectron', {
       scanningMods: false,
       familyMode: false,
       count: 0,
-      syncing: false,
+      // syncing: false,
       timer: {
         selection: null,
         modifiers: null,
@@ -777,6 +834,9 @@ Vue.component('selectron', {
     coreClass: function() {
       var style = 'Selectron-core-' + this.syncing
       return style
+    },
+    syncing: function() {
+      return this.$root.comp.syncing;
     },
     core: function() {
       var num = this.$root.idnum;
@@ -807,9 +867,9 @@ Vue.component('selectron', {
   methods: {
     // was going to limit compRead with this
     toggleSync: function() {
+      this.$root.comp.syncing = !this.$root.comp.syncing;
       Event.$emit('updateComp');
       // console.log(`togging ${this.syncing} to ${!this.syncing}`);
-      // this.$root.comp.syncing = !this.$root.comp.syncing;
     },
     onMouseOutside: function(e, el) {
       this.$root.parseModifiers(e);
@@ -922,7 +982,7 @@ Vue.component('selectron', {
       return result;
     },
     layerMsg: function() {
-      console.log('hello');
+      console.log('TODO > Detailed preview of current solo layer');
     },
     chooseSelectionAction: function() {
       // var length = this.$root.selection.layers.cloned.length;
@@ -1092,6 +1152,7 @@ Vue.component('selectron', {
       }
       results.layers = this.$root.removeDuplicateKeywords(results.layers);
       results.layers = this.$root.removeEmptyValues(results.layers);
+      results.layers = this.$root.removeReservedWords(results.layers);
       // results.props = this.$root.removeDuplicateKeywords(results.props);
       // results.all = [].concat(results.layers, results.props);
       return results;
@@ -1188,14 +1249,16 @@ Vue.component('selectron', {
     scanForColors: function() {
       // console.log('Displaying props:');
       console.log('All colors in comp:');
-      var allColors = [], totalColors = 0, totalLayers = 0;
+      var allColors = [], totalColors = 0, totalLayers = 0, totalNames = [];
       for (var i = 0; i < this.$root.comp.layers.cloned.length; i++) {
         var layer = this.$root.comp.layers.cloned[i];
         totalLayers++;
         if (layer.props.length) {
           for (var c = 0; c < layer.props.length; c++) {
             var child = layer.props[c], mirror = [];
-            var colors = this.scanPropGroupForColor(child);
+            var res = this.scanPropGroupForColor(layer.tags, child)
+            var colors = res[0], names = res[1];
+            // console.log(names);
             if (colors.length) {
               for (var d = 0; d < colors.length; d++) {
                 // console.log(colors[d]);
@@ -1206,9 +1269,12 @@ Vue.component('selectron', {
                     if (colors[d] == allColors[a])
                       isNew = false;
                   }
-                  if (isNew)
+                  if (isNew) {
+                    totalNames.push(names[d])
                     allColors.push(colors[d])
+                  }
                 } else {
+                  totalNames.push(names[d])
                   allColors.push(colors[d])
                 }
               }
@@ -1218,11 +1284,13 @@ Vue.component('selectron', {
       }
       this.$root.comp.colors.unique = allColors;
       this.$root.comp.colors.total = totalColors;
+      this.$root.comp.colors.names = totalNames;
       var msg = `${allColors.length} unique and ${totalColors} total unassigned colors found in ${totalLayers} layers.`
       console.log(msg);
+      // console.log(totalNames);
       Event.$emit('compColorsUpdate', msg);
     },
-    scanPropGroupForColor: function(propGroup, colors=[]) {
+    scanPropGroupForColor: function(tags, propGroup, colors=[], names=[]) {
       if (/(ADBE\sVector\s(Fill|Stroke)\sColor)/i.test(propGroup.matchName)) {
         if (colors.length) {
           var isNew = true;
@@ -1230,23 +1298,28 @@ Vue.component('selectron', {
             if (propGroup.color == colors[i])
               isNew = false;
           }
-          if (isNew)
-            colors.push(propGroup.color)
+          if (isNew) {
+            colors.push(propGroup.color);
+            names.push(tags.join('/'));
+          }
         } else {
-          colors.push(propGroup.color)
+          colors.push(propGroup.color);
+          names.push(tags.join('/'));
         }
       } else if (propGroup.children.length) {
         for (var i = 0; i < propGroup.children.length; i++) {
-          this.scanPropGroupForColor(propGroup.children[i], colors);
+          this.scanPropGroupForColor(tags, propGroup.children[i], colors, names);
         }
       }
-      return colors;
+      // console.log(propGroup);
+      return [colors, names];
     },
     compRead: function(result) {
       // console.log('reading');
       var msg = JSON.parse(result), self = this;
       // console.log(msg);
       this.$root.comp.layers.length = msg.layers.length;
+      this.$root.comp.name = msg.name;
       var shadowlayers = this.$root.comp.layers.raw;
       if (this.$root.isEqual(shadowlayers, msg.layers.raw)) {
         // console.log('No change');
@@ -1361,7 +1434,8 @@ var app = new Vue({
        keywordOld: /([a-z]|[A-Z])[a-z]*(?=[A-Z]|\s)/gm,
       },
       comp: {
-        syncing: false,
+        name: 'none',
+        syncing: true,
         relations: {
           raw: [],
           unique: [],
@@ -1373,6 +1447,7 @@ var app = new Vue({
           length: 0,
         },
         colors: {
+          names: [],
           total: 0,
           unique: [],
         }
@@ -1515,6 +1590,18 @@ var app = new Vue({
         }
       }
       return this.removeDuplicateKeywords(allKeyWords);
+    },
+    removeReservedWords: function(keyList, mirror = []) {
+      // console.log(keyList);
+      for (var i = 0; i < keyList.length; i++) {
+        var targ = keyList[i];
+        if (/colorbuddy/.test(targ)) {
+          // console.log('Empty');
+        } else {
+          mirror.push(targ);
+        }
+      }
+      return mirror;
     },
     removeEmptyValues: function(keyList, mirror = []) {
       // console.log(keyList);
