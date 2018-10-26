@@ -50,6 +50,75 @@ function scanSelection() {
     }
     return JSON.stringify(result);
 }
+function startColorBuddy(val, nam) {
+    var activeItem = app.project.activeItem, complete = false;
+    var values = val.split(',');
+    var names = nam.split(',');
+    // alert(values)
+    // alert(names)
+    if (activeItem != null && activeItem instanceof CompItem) {
+        if (activeItem.layers.length > 0) {
+            for (var i = 1; i <= activeItem.layers.length; i++) {
+                var layer = activeItem.layers[i];
+                rigColorBuddy(layer, values, names);
+            }
+        }
+    }
+}
+function rigColorBuddy(propGroup, colorList, nameList) {
+    var i, prop;
+    for (i = 1; i <= propGroup.numProperties; i++) {
+        prop = propGroup.property(i);
+        if ((prop.propertyType === PropertyType.PROPERTY)
+            // && (prop.propertyValueType == PropertyValueType.COLOR)
+            && (/(ADBE\sVector\s(Fill|Stroke)\sColor)/i.test(prop.matchName))) {
+            var temp = rgbToHex(prop.value[0] * 255, prop.value[1] * 255, prop.value[2] * 255);
+            var match = -1;
+            for (var c = 0; c < colorList.length; c++) {
+                if (temp == colorList[c])
+                    match = c;
+            }
+            if (match > -1) {
+                var nameMatch = nameList[match];
+                prop.expression = 'thisComp.layer(\"colorbuddy\").effect(\"' + nameMatch + '\")(\"Color\")';
+            }
+        }
+        else if ((prop.propertyType === PropertyType.INDEXED_GROUP) || (prop.propertyType === PropertyType.NAMED_GROUP)) {
+            // recurse into nested props
+            rigColorBuddy(prop, colorList, nameList);
+        }
+    }
+    return true;
+}
+scrubAllColorExpressions();
+function scrubAllColorExpressions() {
+    var activeItem = app.project.activeItem, complete = false;
+    // var values = val.split(','), names = nam.split(',');
+    if (activeItem != null && activeItem instanceof CompItem) {
+        if (activeItem.layers.length > 0) {
+            for (var i = 1; i <= activeItem.layers.length; i++) {
+                var layer = activeItem.layers[i];
+                scrubColorBuddy(layer);
+            }
+        }
+    }
+}
+function scrubColorBuddy(propGroup) {
+    var i, prop;
+    for (i = 1; i <= propGroup.numProperties; i++) {
+        prop = propGroup.property(i);
+        if ((prop.propertyType === PropertyType.PROPERTY)
+            // && (prop.propertyValueType == PropertyValueType.COLOR)
+            && (/(ADBE\sVector\s(Fill|Stroke)\sColor)/i.test(prop.matchName))) {
+            prop.expression = '';
+        }
+        else if ((prop.propertyType === PropertyType.INDEXED_GROUP) || (prop.propertyType === PropertyType.NAMED_GROUP)) {
+            // recurse into nested props
+            scrubColorBuddy(prop);
+        }
+    }
+    return true;
+}
 function createNewControl(type, val, nam) {
     var controller, activeItem = app.project.activeItem, complete = false;
     var values = val.split(',');

@@ -238,7 +238,7 @@ Vue.component('tag-details', {
       </div>
       <div v-if="hasColor" class="screen-ColorControl">
         <div class="screen-Tags-Btn"
-          @click="rigColorControl">Rig colors</div>
+          @click="undoColorControl">Undo</div>
       </div>
     </div>
   `,
@@ -258,11 +258,24 @@ Vue.component('tag-details', {
     },
   },
   methods: {
+    confirmColorExp: function(msg) {
+      console.log('I tried inserting expressions');
+    },
+    undoColorControl: function() {
+      if (this.hasColor) {
+        csInterface.evalScript(`scrubAllColorExpressions()`);
+      }
+    },
     rigColorControl: function(state) {
       if ((this.hasColor) && (state)) {
-        console.log('I am ready to rig!');
-      } else if (state) {
-        console.log('I am also ready');
+        // console.log('I am ready to rig!');
+        var colors = [], names = [];
+        for (var i = 0; i < this.colors.length; i++) {
+          var targ = this.colors[i].value, targName = this.names[i];
+          colors.push(targ);
+          names.push(targName);
+        }
+        csInterface.evalScript(`startColorBuddy('${colors.join()}', '${this.names.join()}')`, self.confirmColorExp);
       } else {
         console.log('I returned false');
       }
@@ -1300,11 +1313,11 @@ Vue.component('selectron', {
           }
           if (isNew) {
             colors.push(propGroup.color);
-            names.push(tags.join('/'));
+            names.push(tags.join(''));
           }
         } else {
           colors.push(propGroup.color);
-          names.push(tags.join('/'));
+          names.push(tags.join(''));
         }
       } else if (propGroup.children.length) {
         for (var i = 0; i < propGroup.children.length; i++) {

@@ -4,7 +4,7 @@ Revamp of Joystick Buddy -- a reactive selection tool that can recognize related
 
 ## reactive UI
 
-![](https://thumbs.gfycat.com/SneakyIndelibleFairybluebird-size_restricted.gif)
+![](https://thumbs.gfycat.com/DirtySorrowfulLaughingthrush-size_restricted.gif)
 
 ## detects parenting hierarchy for entire character rig:
 
